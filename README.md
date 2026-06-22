@@ -308,4 +308,101 @@
                     if (data) {
                         const tInfo = (data.teacher === '-' || !data.teacher) ? '' : ` • ${data.teacher}`;
                         html += `<td class="cell-${day}"><strong>${data.subject}</strong><br><span class="info-text">${data.room}${tInfo}</span></td>`;
-                    } else
+                    } else {
+                        html += `<td class="cell-${day}" style="color:#444 !important;">-</td>`;
+                    }
+                }
+            });
+            html += `</tr>`;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function updateTimetable() {
+        const now = new Date();
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayName = days[now.getDay()];
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+
+        dayKeys.forEach(day => {
+            const cells = document.querySelectorAll(`.cell-${day}`);
+            const th = document.getElementById(`th-${day}`);
+            if (day === dayName) {
+                cells.forEach(c => c.classList.add('today-highlight'));
+                if (th) th.classList.add('today-highlight');
+            } else {
+                cells.forEach(c => c.classList.remove('today-highlight'));
+                if (th) th.classList.remove('today-highlight');
+            }
+        });
+
+        const timeString = `${now.getMonth() + 1}월 ${now.getDate()}일 (${dayName}) ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('current-time-display').innerText = timeString;
+
+        if (dayName === '토' || dayName === '일') {
+            showFreeTime("즐거운 주말! ✨", "푹 쉬고 재충전하세요.");
+            return;
+        }
+
+        const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+        let currentSlot = null;
+
+        for (const slot of timeSlots) {
+            const startTotalSeconds = (slot.start[0] * 3600) + (slot.start[1] * 60);
+            const endTotalSeconds = (slot.end[0] * 3600) + (slot.end[1] * 60);
+
+            if (currentTotalSeconds >= startTotalSeconds && currentTotalSeconds < endTotalSeconds) {
+                currentSlot = slot;
+                
+                const remainSecs = endTotalSeconds - currentTotalSeconds;
+                const rMin = Math.floor(remainSecs / 60);
+                const rSec = remainSecs % 60;
+                
+                document.getElementById('timer-display').innerText = `⏱️ 종료까지 ${rMin}분 ${rSec}초 남음`;
+                break;
+            }
+        }
+
+        if (currentSlot) {
+            document.getElementById('period-label').innerText = currentSlot.name;
+
+            if (['점심', '저녁', '청소'].includes(currentSlot.name)) {
+                document.getElementById('subject-display').innerText = currentSlot.name;
+                document.getElementById('info-display').innerText = "맛있게 먹고 푹 쉬기! 🎈";
+                return;
+            }
+
+            const todaySchedule = timetableData[dayName];
+            if (todaySchedule && todaySchedule[currentSlot.name]) {
+                const info = todaySchedule[currentSlot.name];
+                document.getElementById('subject-display').innerText = info.subject;
+                if (info.teacher === '-' || !info.teacher) {
+                    document.getElementById('info-display').innerText = `📍 위치: ${info.room}`;
+                } else {
+                    document.getElementById('info-display').innerText = `👤 ${info.teacher} 선생님 | 📍 ${info.room}`;
+                }
+            } else {
+                document.getElementById('subject-display').innerText = "일정 없음";
+                document.getElementById('info-display').innerText = "자유 시간 또는 빠른 귀가! 🏡";
+            }
+        } else {
+            showFreeTime("정규 시간 외", "현재는 일과 외 시간입니다. 자유 시간! ✨");
+        }
+    }
+
+    function showFreeTime(label, message) {
+        document.getElementById('period-label').innerText = label;
+        document.getElementById('subject-display').innerText = "자유 시간";
+        document.getElementById('info-display').innerText = message;
+        document.getElementById('timer-display').innerText = "⏱️ 운영 시간 아님";
+    }
+
+    generateTableHTML();
+    updateTimetable();
+    setInterval(updateTimetable, 1000);
+</script>
+
+</body>
+</html>
