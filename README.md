@@ -1,4 +1,5 @@
 # Timetable09090909
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -106,7 +107,7 @@
 
         .section-title {
             font-size: 1.1rem;
-            color: #3388ff; /* 조금 더 밝고 선명한 파란색 */
+            color: #3388ff; 
             margin-bottom: 10px;
             font-weight: bold;
         }
@@ -115,7 +116,7 @@
             width: 100%;
             overflow-x: auto;
             border-radius: 10px;
-            border: 2px solid #0055ff; /* 전체 표 테두리를 파란색으로 변경 */
+            border: 2px solid #0055ff; 
         }
 
         table {
@@ -123,7 +124,7 @@
             border-collapse: collapse;
             font-size: 0.85rem;
             text-align: center;
-            background-color: #1a1a1a;
+            background-color: #1a1a1a !important; /* 💡 표 바탕을 강제로 검은색 고정 */
             min-width: 440px; 
         }
 
@@ -133,34 +134,38 @@
         }
 
         th {
-            background-color: #252525;
-            color: #3388ff; /* 헤더 요일 글씨 진한 파란색 */
+            background-color: #252525 !important; /* 💡 요일 칸 배경 진한 검은색 고정 */
+            color: #3388ff !important; /* 요일 글씨는 진한 파란색 */
             font-weight: bold;
             font-size: 0.9rem;
         }
 
-        /* 💡 글자색 개선 부문 */
+        /* 💡 과목이 표시되는 칸의 스타일 강제 지정 */
         td {
-            color: #ffffff; /* 기본 과목 글씨를 완전한 흰색으로 변경 */
+            background-color: #1a1a1a !important; /* 💡 무조건 바탕을 어두운 검은색으로 */
+            color: #ffffff !important; /* 기본 일반 텍스트는 흰색 */
             white-space: pre-line; 
             line-height: 1.4;
         }
 
-        /* 과목 텍스트 강조 (선명한 파란색) */
+        /* 과목 강조 텍스트 (진한 파란색) */
         td strong {
-            color: #3388ff; 
+            color: #3388ff !important; 
             font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 3px;
         }
 
-        /* 교실 및 선생님 정보 글씨 색상 조정 */
+        /* 교실 및 선생님 정보 (형광 민트) */
         .info-text {
-            color: #00ffcc; /* 형광 민트/블루로 어두운 곳에서도 아주 잘 보이게 처리 */
+            color: #00ffcc !important; 
             font-size: 0.75rem;
         }
 
-        /* 현재 요일 하이라이트 효과 (배경을 조금 더 밝게) */
+        /* 오늘 요일 하이라이트 효과 (검은 바탕 위에 파란색 필터를 겹친 느낌) */
         .today-highlight {
-            background-color: rgba(0, 85, 255, 0.25) !important;
+            background-color: #162447 !important; /* 💡 흰색이 섞이지 않는 딥블루/검은색 계열로 변경 */
+            border: 1px solid #0055ff !important;
         }
 
         .status-box {
@@ -192,7 +197,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="color: #ffffff;">교시</th>
+                        <th style="color: #ffffff !important;">교시</th>
                         <th id="th-월">월</th>
                         <th id="th-화">화</th>
                         <th id="th-수">수</th>
@@ -294,80 +299,14 @@
 
         timeSlots.forEach(slot => {
             html += `<tr>`;
-            html += `<td style="font-weight:bold; background-color:#222; color:#fff;">${slot.name}<br><span style="font-size:0.65rem; color:#888;">${slot.timeStr}</span></td>`;
+            html += `<td style="font-weight:bold; background-color:#222 !important; color:#fff !important;">${slot.name}<br><span style="font-size:0.65rem; color:#888;">${slot.timeStr}</span></td>`;
             
             dayKeys.forEach(day => {
                 if (['점심', '저녁', '청소'].includes(slot.name)) {
-                    html += `<td class="cell-${day}" style="color:#555; font-size:0.75rem; background-color:#151515;">${slot.name}</td>`;
+                    html += `<td class="cell-${day}" style="color:#555 !important; font-size:0.75rem; background-color:#151515 !important;">${slot.name}</td>`;
                 } else {
                     const data = timetableData[day][slot.name];
                     if (data) {
                         const tInfo = (data.teacher === '-' || !data.teacher) ? '' : ` • ${data.teacher}`;
                         html += `<td class="cell-${day}"><strong>${data.subject}</strong><br><span class="info-text">${data.room}${tInfo}</span></td>`;
-                    } else {
-                        html += `<td class="cell-${day}" style="color:#444;">-</td>`;
-                    }
-                }
-            });
-            html += `</tr>`;
-        });
-        tbody.innerHTML = html;
-    }
-
-    function updateTimetable() {
-        const now = new Date();
-        const days = ['일', '월', '화', '수', '목', '금', '토'];
-        const dayName = days[now.getDay()];
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const seconds = now.getSeconds();
-
-        dayKeys.forEach(day => {
-            const cells = document.querySelectorAll(`.cell-${day}`);
-            const th = document.getElementById(`th-${day}`);
-            if (day === dayName) {
-                cells.forEach(c => c.classList.add('today-highlight'));
-                if (th) th.classList.add('today-highlight');
-            } else {
-                cells.forEach(c => c.classList.remove('today-highlight'));
-                if (th) th.classList.remove('today-highlight');
-            }
-        });
-
-        const timeString = `${now.getMonth() + 1}월 ${now.getDate()}일 (${dayName}) ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        document.getElementById('current-time-display').innerText = timeString;
-
-        if (dayName === '토' || dayName === '일') {
-            showFreeTime("즐거운 주말! ✨", "푹 쉬고 재충전하세요.");
-            return;
-        }
-
-        const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-        let currentSlot = null;
-
-        for (const slot of timeSlots) {
-            const startTotalSeconds = (slot.start[0] * 3600) + (slot.start[1] * 60);
-            const endTotalSeconds = (slot.end[0] * 3600) + (slot.end[1] * 60);
-
-            if (currentTotalSeconds >= startTotalSeconds && currentTotalSeconds < endTotalSeconds) {
-                currentSlot = slot;
-                
-                const remainSecs = endTotalSeconds - currentTotalSeconds;
-                const rMin = Math.floor(remainSecs / 60);
-                const rSec = remainSecs % 60;
-                
-                document.getElementById('timer-display').innerText = `⏱️ 종료까지 ${rMin}분 ${rSec}초 남음`;
-                break;
-            }
-        }
-
-        if (currentSlot) {
-            document.getElementById('period-label').innerText = currentSlot.name;
-
-            if (['점심', '저녁', '청소'].includes(currentSlot.name)) {
-                document.getElementById('subject-display').innerText = currentSlot.name;
-                document.getElementById('info-display').innerText = "맛있게 먹고 푹 쉬기! 🎈";
-                return;
-            }
-
-            const todaySchedule = timetable
+                    } else
